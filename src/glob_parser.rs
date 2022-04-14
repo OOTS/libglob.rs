@@ -9,9 +9,22 @@ pub enum Token<'g> {
     Literal(MultiSlice<'g>),
 }
 
+/// returned if parsing a glob string fails, e.g.:
+/// ```
+/// # use glob::ParsedGlobString;
+/// # use glob::GlobParseError;
+/// let pattern = ParsedGlobString::try_from("Foo\\n");
+/// assert!(pattern.is_err());
+/// assert_eq!(pattern.unwrap_err(), GlobParseError::UnknownEscapeSequence(3, "\\n"));
+/// ```
 #[derive(Debug, PartialEq, Eq)]
 pub enum GlobParseError<'g> {
+    /// returned when there is an unsupported escape sequence, i.e. a (unescaped) backslash
+    /// any character other than `*`, `?` or `\`. Encapsulates the index at which the escape
+    /// sequence is found in the pattern string and the escape sequence itself.
     UnknownEscapeSequence(usize, &'g str), //index, escape sequence
+    /// returned when there is an unescaped backslash at the end of the pattern string. Encapsulates
+    /// the index at which the offending backslash is in the pattern string.
     UnterminatedEscapeSequence(usize), // index
 }
 
